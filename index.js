@@ -61,6 +61,8 @@ bot.on('message', async (ctx) => {
     const { torrents, localCookies } = await searchTorrents(query, cookies || undefined);
     const uuid = uuidv4();
 
+    if (!(torrents.length > 0 && Object.keys(torrents[0]).length > 0)) return ctx.reply('No torrents found.');
+
     const messages = torrents.map(torrent => {
         return `<a href="${torrent['Назва'].link}">${torrent['Назва'].text}</a>
     Автор: <b>${torrent['Автор'].text}</b>
