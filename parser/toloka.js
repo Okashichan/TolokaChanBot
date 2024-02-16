@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import axios from 'axios';
-import axiosWithCookies from './axiosSession.mjs';
+import axiosWithCookies from './axiosSession.js';
 
 const url = process.env.TOLOKA_URL;
 

@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import axios from 'axios';
 import { Telegraf } from 'telegraf';
-import { connect, createUser, addTolokaUserCookies, getTolokaUserCookies } from './db/mongo.mjs';
-import { searchTorrents, getLoginCredentials } from './parser/toloka.mjs';
+import { connect, createUser, addTolokaUserCookies, getTolokaUserCookies } from './db/mongo.js';
+import { searchTorrents, getLoginCredentials } from './parser/toloka.js';
 
 await connect();
 const bot = new Telegraf(process.env.BOT_TOKEN);
