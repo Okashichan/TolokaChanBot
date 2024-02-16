@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import axios from 'axios';
 import { Telegraf } from 'telegraf';
+import { v4 as uuidv4 } from 'uuid';
 import { connect, createUser, addTolokaUserCookies, getTolokaUserCookies } from './db/mongo.js';
 import { searchTorrents, getLoginCredentials } from './parser/toloka.js';
 
@@ -58,6 +59,7 @@ bot.on('message', async (ctx) => {
     let cookies = await getTolokaUserCookies(id);
 
     const { torrents, localCookies } = await searchTorrents(query, cookies || undefined);
+    const uuid = uuidv4();
 
     const messages = torrents.map(torrent => {
         return `<a href="${torrent['Назва'].link}">${torrent['Назва'].text}</a>
@@ -84,11 +86,11 @@ bot.on('message', async (ctx) => {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "⬅️", callback_data: `${id}_prev` },
-                        { text: "⬆️", callback_data: `${id}_up` },
-                        { text: "📥", callback_data: `${id}_dl` },
-                        { text: "⬇️", callback_data: `${id}_down` },
-                        { text: "➡️", callback_data: `${id}_next` },
+                        { text: "⬅️", callback_data: `${id}_prev_${uuid}` },
+                        { text: "⬆️", callback_data: `${id}_up_${uuid}` },
+                        { text: "📥", callback_data: `${id}_dl_${uuid}` },
+                        { text: "⬇️", callback_data: `${id}_down_${uuid}` },
+                        { text: "➡️", callback_data: `${id}_next_${uuid}` },
                     ],
                 ]
             }
@@ -99,7 +101,7 @@ bot.on('message', async (ctx) => {
 
     await sendPage();
 
-    bot.action(`${id}_prev`, async (ctx) => {
+    bot.action(`${id}_prev_${uuid}`, async (ctx) => {
         if (currentPage > 0) {
             currentPage--;
             currentElement = 0;
@@ -108,7 +110,7 @@ bot.on('message', async (ctx) => {
         ctx.answerCbQuery();
     });
 
-    bot.action(`${id}_next`, async (ctx) => {
+    bot.action(`${id}_next_${uuid}`, async (ctx) => {
         if (currentPage < pages.length - 1) {
             currentPage++;
             currentElement = 0;
@@ -117,7 +119,7 @@ bot.on('message', async (ctx) => {
         ctx.answerCbQuery();
     });
 
-    bot.action(`${id}_down`, async (ctx) => {
+    bot.action(`${id}_down_${uuid}`, async (ctx) => {
         if (currentElement < pages[currentPage].length - 1) {
             currentElement++;
             await sendPage();
@@ -125,7 +127,7 @@ bot.on('message', async (ctx) => {
         ctx.answerCbQuery();
     });
 
-    bot.action(`${id}_up`, async (ctx) => {
+    bot.action(`${id}_up_${uuid}`, async (ctx) => {
         if (currentElement > 0) {
             currentElement--;
             await sendPage();
@@ -133,7 +135,7 @@ bot.on('message', async (ctx) => {
         ctx.answerCbQuery();
     });
 
-    bot.action(`${id}_dl`, async (ctx) => {
+    bot.action(`${id}_dl_${uuid}`, async (ctx) => {
         const toDownload = torrents[currentPage * 5 + currentElement]['Посил'].link;
 
         const buffer = await download(toDownload, cookies || localCookies);
