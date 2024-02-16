@@ -1,6 +1,8 @@
 # TolokaChanBot
 This bot supports searching with your or without any credentials on toloka.to.
+
 Just send your query and it will answer with torrents that has most seeds.
+
 If you want to keep your credentials while downloading torrents directly from the bot you can login using /login command.
 You can test it here https://t.me/tolokachan_bot.
 # deploy
