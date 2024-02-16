@@ -7,4 +7,4 @@ RUN npm install
 
 COPY . .
 
-CMD [ "node", "index.mjs" ]
+CMD [ "node", "index.js" ]
