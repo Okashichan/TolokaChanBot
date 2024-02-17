@@ -2,7 +2,13 @@ import 'dotenv/config';
 import axios from 'axios';
 import { Telegraf } from 'telegraf';
 import { v4 as uuidv4 } from 'uuid';
-import { connect, createUser, addTolokaUserCookies, getTolokaUserCookies } from './db/mongo.js';
+import {
+    connect,
+    createUser,
+    addTolokaUserCookies,
+    getTolokaUserCookies,
+    removeTolokaUserCookies
+} from './db/mongo.js';
 import { searchTorrents, getLoginCredentials } from './parser/toloka.js';
 
 await connect();
@@ -28,7 +34,7 @@ bot.start((ctx) => {
 
     createUser(id, username);
 
-    ctx.reply(`Hello, ${username || 'Anonymous'}!\nTo search for torrents just send me a message with the query.\nTo login with your credentials use /login <login> <password> command.`);
+    ctx.reply(`Hello, ${username || 'Anonymous'}!\nTo search for torrents just send me a message with the query.\nTo login with your credentials use /login <login> <password> command.\nTo logout use /logout command.`);
 });
 
 bot.command('login', async (ctx) => {
@@ -46,6 +52,14 @@ bot.command('login', async (ctx) => {
     ctx.reply('Logged in successfully!');
 });
 
+bot.command('logout', async (ctx) => {
+    const { id } = ctx.from;
+
+    const result = removeTolokaUserCookies(id);
+
+    if (result) return ctx.reply('Logged out successfully!');
+});
+
 bot.on('message', async (ctx) => {
     if (!("text" in ctx.message)) return;
 
@@ -58,7 +72,10 @@ bot.on('message', async (ctx) => {
 
     let cookies = await getTolokaUserCookies(id);
 
-    const { torrents, localCookies } = await searchTorrents(query, cookies || undefined);
+    const { torrents, localCookies, newUserCookies } = await searchTorrents(query, cookies || undefined);
+
+    cookies = newUserCookies || cookies;
+
     const uuid = uuidv4();
 
     if (!(torrents.length > 0 && Object.keys(torrents[0]).length > 0)) return ctx.reply('No torrents found.');
@@ -140,7 +157,7 @@ bot.on('message', async (ctx) => {
     bot.action(`${id}_dl_${uuid}`, async (ctx) => {
         const toDownload = torrents[currentPage * 5 + currentElement]['Посил'].link;
 
-        const buffer = await download(toDownload, cookies || localCookies);
+        const buffer = await download(toDownload, cookies.length === 0 ? localCookies : cookies);
 
         ctx.telegram.sendDocument(ctx.chat.id, { source: buffer, filename: torrents[currentPage * 5 + currentElement]['Назва'].filename });
     });

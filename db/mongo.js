@@ -52,4 +52,25 @@ const getTolokaUserCookies = async (telegramId) => {
     }
 }
 
-export { connect, createUser, addTolokaUserCookies, getTolokaUserCookies };
+const removeTolokaUserCookies = async (telegramId) => {
+    try {
+        const user = await User.findOne({ telegramId });
+
+        user.tolokaUserCookies = null;
+
+        await user.save();
+
+        return user;
+    } catch (error) {
+        console.error("Error removing cookies:", error.message);
+    }
+}
+
+
+export {
+    connect,
+    createUser,
+    addTolokaUserCookies,
+    getTolokaUserCookies,
+    removeTolokaUserCookies
+};

@@ -1,5 +1,4 @@
 import * as cheerio from 'cheerio';
-import axios from 'axios';
 import axiosWithCookies from './axiosSession.js';
 
 const url = process.env.TOLOKA_URL;
@@ -71,16 +70,21 @@ const parseSearch = (html) => {
 const searchTorrents = async (query, userCookies, offset = 0) => {
     const cookies = userCookies || await getLoginCredentials();
 
-    const { data } = await axios.get(`${url}tracker.php?nm=${query}&start=${offset}`, {
+    const { data } = await client.get(`${url}tracker.php?nm=${query}&start=${offset}`, {
         withCredentials: true,
         headers: {
             Cookie: cookies
         }
     });
 
+    const newUserCookies = await getCookies();
+
+    resetCookies();
+
     return {
         'torrents': parseSearch(data),
-        'localCookies': userCookies || cookies
+        'localCookies': userCookies || cookies,
+        'newUserCookies': newUserCookies
     };
 }
 
