@@ -2,6 +2,8 @@ import axios from 'axios';
 import { CookieJar } from 'tough-cookie';
 import { wrapper } from 'axios-cookiejar-support';
 
+const url = process.env.TOLOKA_URL;
+
 const axiosWithCookies = () => {
     const jar = new CookieJar();
 
@@ -9,7 +11,7 @@ const axiosWithCookies = () => {
 
     const getCookies = () => {
         return new Promise((resolve, reject) => {
-            jar.getCookies('https://toloka.to/', (err, cookies) => {
+            jar.getCookies(url, (err, cookies) => {
                 if (err) {
                     reject(err);
                 } else {

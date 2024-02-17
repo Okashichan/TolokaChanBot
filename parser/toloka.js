@@ -13,7 +13,7 @@ const getLoginCredentials = async (username = process.env.TOLOKA_LOGIN, password
     formData.append('ssl', 'on');
     formData.append('login', 'Вхід');
 
-    const res = await client.post('https://toloka.to/login.php', formData, { withCredentials: true });
+    const res = await client.post(`${url}login.php`, formData, { withCredentials: true });
 
     if (!res.data.includes(username)) return;
 
