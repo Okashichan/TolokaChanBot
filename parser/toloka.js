@@ -67,8 +67,37 @@ const parseSearch = (html) => {
     return sortBySeeds;
 }
 
+const mergeCookies = (oldCookies, newCookies) => {
+    let oldCookieParts = oldCookies.split(';');
+    let newCookieParts = newCookies.split(';');
+
+    let cookieMap = {};
+
+    oldCookieParts.forEach(cookie => {
+        let [key, value] = cookie.split('=');
+        if (key && value) {
+            cookieMap[key.trim()] = value.trim();
+        }
+    });
+
+    newCookieParts.forEach(cookie => {
+        let [key, value] = cookie.split('=');
+        if (key && value) {
+            cookieMap[key.trim()] = value.trim();
+        }
+    });
+
+    let mergedCookies = Object.entries(cookieMap)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('; ');
+
+    return mergedCookies;
+}
+
 const searchTorrents = async (query, userCookies, offset = 0) => {
     const cookies = userCookies || await getLoginCredentials();
+
+    resetCookies();
 
     const { data } = await client.get(`${url}tracker.php?nm=${query}&start=${offset}`, {
         withCredentials: true,
@@ -84,7 +113,7 @@ const searchTorrents = async (query, userCookies, offset = 0) => {
     return {
         'torrents': parseSearch(data),
         'localCookies': userCookies || cookies,
-        'newUserCookies': newUserCookies
+        'newUserCookies': mergeCookies(cookies, newUserCookies.join('; '))
     };
 }
 

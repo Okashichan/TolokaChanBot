@@ -72,9 +72,13 @@ bot.on('message', async (ctx) => {
 
     let cookies = await getTolokaUserCookies(id);
 
-    const { torrents, localCookies, newUserCookies } = await searchTorrents(query, cookies || undefined);
+    console.log('OldCookies:', cookies)
+
+    const { torrents, localCookies, newUserCookies } = await searchTorrents(query, cookies);
 
     cookies = newUserCookies || cookies;
+
+    if (cookies) addTolokaUserCookies(id, cookies);
 
     const uuid = uuidv4();
 
@@ -157,7 +161,7 @@ bot.on('message', async (ctx) => {
     bot.action(`${id}_dl_${uuid}`, async (ctx) => {
         const toDownload = torrents[currentPage * 5 + currentElement]['Посил'].link;
 
-        const buffer = await download(toDownload, cookies.length === 0 ? localCookies : cookies);
+        const buffer = await download(toDownload, cookies ? cookies : localCookies);
 
         ctx.telegram.sendDocument(ctx.chat.id, { source: buffer, filename: torrents[currentPage * 5 + currentElement]['Назва'].filename });
     });
