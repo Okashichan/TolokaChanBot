@@ -70,21 +70,33 @@ bot.on('message', async (ctx) => {
     let currentElement = 0;
     let messageId = null;
 
+    let currentCookies = null;
+    let currentTorrents = null;
+
     let cookies = await getTolokaUserCookies(id);
 
-    console.log('OldCookies:', cookies)
+    if (!cookies) {
+        const { torrents, localCookies, newUserCookies } = await searchTorrents(query, cookies);
 
-    const { torrents, localCookies, newUserCookies } = await searchTorrents(query, cookies);
+        currentCookies = localCookies;
+        currentTorrents = torrents;
+    } else {
+        const { torrents, localCookies, newUserCookies } = await searchTorrents(query, cookies);
 
-    cookies = newUserCookies || cookies;
+        currentCookies = newUserCookies;
+        currentTorrents = torrents;
 
-    if (cookies) addTolokaUserCookies(id, cookies);
+        addTolokaUserCookies(id, newUserCookies);
+    }
+
+
+    // if (cookies !== null) addTolokaUserCookies(id, cookies);
 
     const uuid = uuidv4();
 
-    if (!(torrents.length > 0 && Object.keys(torrents[0]).length > 0)) return ctx.reply('No torrents found.');
+    if (!(currentTorrents.length > 0 && Object.keys(currentTorrents[0]).length > 0)) return ctx.reply('No torrents found.');
 
-    const messages = torrents.map(torrent => {
+    const messages = currentTorrents.map(torrent => {
         return `<a href="${torrent['Назва'].link}">${torrent['Назва'].text}</a>
     Автор: <b>${torrent['Автор'].text}</b>
     Розмір: <b>${torrent['Розмір']}</b>
@@ -159,11 +171,11 @@ bot.on('message', async (ctx) => {
     });
 
     bot.action(`${id}_dl_${uuid}`, async (ctx) => {
-        const toDownload = torrents[currentPage * 5 + currentElement]['Посил'].link;
+        const toDownload = currentTorrents[currentPage * 5 + currentElement]['Посил'].link;
 
-        const buffer = await download(toDownload, cookies ? cookies : localCookies);
+        const buffer = await download(toDownload, currentCookies);
 
-        ctx.telegram.sendDocument(ctx.chat.id, { source: buffer, filename: torrents[currentPage * 5 + currentElement]['Назва'].filename });
+        ctx.telegram.sendDocument(ctx.chat.id, { source: buffer, filename: currentTorrents[currentPage * 5 + currentElement]['Назва'].filename });
     });
 });
 
